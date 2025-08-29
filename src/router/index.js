@@ -14,6 +14,7 @@ import PassengerAbout from '../views/PassengerAbout.vue'
 import RidesHistory from '../views/RidesHistory.vue'
 import ReservationView from '../views/ReservationView.vue'
 import PassengerProfile from '../views/PassengerProfile.vue'
+import OperatorRides from '../views/OperatorRides.vue'
 
 const routes = [
   {
@@ -90,6 +91,11 @@ const routes = [
     path:'/putnikprofil',
     name:'PassengerProfile',
     component:PassengerProfile
+  },
+  {
+    path:'/svevoznje',
+    name:'OperatorRides',
+    component:OperatorRides
   }
 ]
 

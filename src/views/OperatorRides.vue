@@ -21,42 +21,34 @@
                 <i class="fa-solid fa-car-side"></i> Vožnje
             </a>
             <a href="/operatorprofil">
-                <i class="fa-solid fa-user"></i>Profil
+                <i class="fa-solid fa-user"></i> Profil
             </a>
         </div>
         <button class="split" @click="onLogout">
             <i class="fa-solid fa-right-from-bracket"></i> Odjava
         </button>
     </div>
-
     <div class="main-content">
-        <div class="buttons">
-            <button @click="otvoriDialog" class="button button-text">Dodaj Vozača</button>
-            <ModalComponent v-if="dialogOtvoren" @zatvori="zatvoriDialog">
-                <AddDriver @zatvori="zatvoriDialog"/>
-                <button @click="zatvoriDialog" class="close">X</button>
-            </ModalComponent>
-        </div>
         <div class="table-content">
             <table>
                 <thead>
                     <tr>
-                        <th>IME</th>
-                        <th>PREZIME</th>
-                        <th>ADRESA</th>
-                        <th>TELEFON</th>
-                        <th>VOZILO</th>
-                        <th>REGISTRACIJA</th>
+                        <th>PUTNIK</th>
+                        <th>VOZAČ</th>
+                        <th>VRIJEME VOŽNJE</th>
+                        <th>LOKACIJA</th>
+                        <th>STATUS REZERVACIJE</th>
                     </tr>
                 </thead>
-                <tbody v-if="drivers.length">
-                    <tr v-for="driver in drivers" :key="driver._id" :value="driver._id">
-                        <td>{{ driver.firstName }}</td>
-                        <td>{{ driver.lastName }}</td>
-                        <td>{{ driver.address.street }}, {{ driver.address.postalCode }} {{ driver.address.town }}</td>
-                        <td>{{ driver.phone }}</td>
-                        <td>{{ driver.vehicle.brand }} {{ driver.vehicle.model }}</td>
-                        <td>{{ driver.vehicle.license }}</td>
+                <tbody v-if="rides.length">
+                    <tr v-for="ride in rides" :key="ride._id" :value="ride._id">
+                        <td>{{ ride.passenger.firstName }} {{ ride.passenger.lastName }}</td>
+                        <td>{{ ride.driver.firstName }} {{ ride.driver.lastName }}</td>
+                        <td>{{ formatDateTime(ride.dateTime) }}</td>
+                        <td>{{ ride.endAddress.street }} {{ ride.endAddress.town }}</td>
+                        <td>
+                            <i class="fa-solid fa-circle-check" style="color: green; cursor: pointer;" @click="confirmReservation"></i>   <i class="fa-solid fa-circle-xmark" style="color: red; cursor: pointer;" @click="cancelReservation"></i>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -64,51 +56,43 @@
     </div>
 </template>
 <script>
-    import ModalComponent from '../components/ModalComponent.vue';
-    import AddDriver from '../components/AddDriver.vue';
     import axios from 'axios';
-    import {io} from 'socket.io-client'
+    import dayjs from 'dayjs';
+    import {io} from 'socket.io-client';
 
     export default{
-        name:'OperatorDrivers',
-        components:{
-            ModalComponent,
-            AddDriver
-        },
+        name:'OperatorRides',
         data(){
             return{
-                dialogOtvoren:false,
-                drivers:[]
+                rides:[]
             }
         },
         methods:{
-            otvoriDialog(){
-                this.dialogOtvoren=true;
-            },
-            zatvoriDialog(){
-                this.dialogOtvoren=false;
-            },
-            onLogout(){
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-                window.location.assign("/");
-            },
-            async getDrivers(){
+            async getRides(){
                 try{
-                    const response=await axios.get('http://localhost:3000/drivers');
-                    this.drivers=response.data;
+                    const response=await axios.get('http://localhost:3000/rides');
+                    this.rides=response.data;
                 }catch(error){
                     console.log('Greška',error);
                     alert('Greška na serveru');
                 }
+            },
+            formatDateTime(isoDate){
+                return dayjs(isoDate).format('DD.MM.YYYY  HH:mm');
+            },
+            confirmReservation(){
+                alert('Rezervacija potvrđena');
+            },
+            cancelReservation(){
+                alert('Rezervacija odbijena');
             }
         },
         mounted(){
-            this.getDrivers();
+            this.getRides();
             this.socket=io('http://localhost:3000');
 
-            this.socket.on('addedDriver',()=>{
-                this.getDrivers();
+            this.socket.on('rideAdded',()=>{
+                this.getRides();
             });
         }
     }
@@ -202,37 +186,6 @@ body {
     margin-left: 160px;
     padding: 20px;
     padding-top: 30px;
-}
-.buttons{
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-bottom: 20px;
-}
-.button{
-    width: 110px;
-    height: 32px;
-    background-color: black;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.button-text{
-    font-family: 'Times New Roman',Helvetica;
-    font-weight: 700;
-    color: yellow;
-    font-size: 14px;
-    text-align: center;
-    white-space: nowrap;
-}
-.close{
-    cursor: pointer;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
 }
 .table-content{
     margin-bottom: 20px;

@@ -37,7 +37,7 @@
             <div class="label">
                 <label for="user">Email</label>
             </div>
-            <select id="user">
+            <select v-model="updatedPassenger.user" id="user">
                 <option value="" disabled selected>Odaberite Vaš Email</option>
                 <option v-for="user in users" :value="user._id" :key="user._id">{{ user.email }}</option>
             </select>
@@ -107,6 +107,10 @@
                 alert('Greška na serveru');
                }
             }
+        },
+        mounted(){
+            this.getAddresses();
+            this.getUsers();
         }
     }
 </script>

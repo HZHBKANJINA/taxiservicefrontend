@@ -22,16 +22,18 @@
                     <tr>
                         <th>IME</th>
                         <th>PREZIME</th>
-                        <th>POLAZAK</th>
-                        <th>DOLAZAK</th>
+                        <th>VOZAČ</th>
+                        <th>VRIJEME</th>
+                        <th>LOKACIJA</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                <tbody v-if="rides.length">
+                    <tr v-for="ride in rides" :key="ride._id" :value="ride._id">
+                        <td>{{ ride.passenger.firstName }}</td>
+                        <td>{{ ride.passenger.lastName }}</td>
+                        <td>{{ ride.driver.firstName }} {{ ride.driver.lastName }}</td>
+                        <td>{{ formatDateTime(ride.dateTime) }}</td>
+                        <td>{{ ride.endAddress.street }} {{ ride.endAddress.town }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -39,14 +41,43 @@
     </div>
 </template>
 <script>
+    import axios from 'axios';
+    import {io} from 'socket.io-client'
+    import dayjs from 'dayjs';
+
     export default{
         name:'RidesHistory',
+        data(){
+            return{
+                rides:[]
+            }
+        },
         methods:{
             onLogout(){
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
                 window.location.assign("/");
+            },
+            async getRides(){
+                try{
+                    const response=await axios.get('http://localhost:3000/rides');
+                    this.rides=response.data;
+                }catch(error){
+                    console.log('Greška',error);
+                    alert('Greška na serveru');
+                }
+            },
+            formatDateTime(isoDate){
+               return dayjs(isoDate).format('DD.MM.YYYY  HH:mm')
             }
+        },
+        mounted(){
+            this.getRides();
+            this.socket=io('http://localhost:3000');
+
+            this.socket.on('rideAdded',()=>{
+                this.getRides();
+            });
         }
     }
 </script>

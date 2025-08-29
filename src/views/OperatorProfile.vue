@@ -17,6 +17,9 @@
             <a href="/operatorvozila">
                 <i class="fa-solid fa-car"></i> Vozila
             </a>
+            <a href="/svevoznje">
+                <i class="fa-solid fa-car-side"></i> Vožnje
+            </a>
             <a href="/operatorprofil">
                 <i class="fa-solid fa-user"></i> Profil
             </a>
