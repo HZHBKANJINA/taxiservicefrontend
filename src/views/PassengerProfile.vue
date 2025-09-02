@@ -55,8 +55,12 @@
         },
         data(){
             return{
-                dialogOtvoren:false
+                dialogOtvoren:false,
+                passenger:null
             }
+        },
+        async mounted(){
+            this.getLoggedPassenger();
         },
         methods:{
             otvoriDialog() {

@@ -15,16 +15,73 @@
         <a @click="onLogout" class="split">Odjava</a>
         <a href="/putnikprofil" class="split">Profil</a>
     </div>
+    <div class="main-content">
+        <MapComponent
+            v-if="mapLocation"
+            :center="mapLocation"
+            :zoom="15"
+            markerTitle="Moja adresa"
+        />
+    </div>
 </template>
 <script>
+    import MapComponent from '../components/MapComponent.vue'
+    import axios from 'axios';
+    
     export default{
         name:'PassengerDashboard',
+        components:{
+            MapComponent
+        },
+        data(){
+            return{
+                mapLocation:null,
+            }
+        },
         methods:{
+            async getPassengerLocation(){
+                try{
+                    const email = JSON.parse(localStorage.getItem("user")).email;
+                    const apiKey = process.env.VUE_APP_GOOGLE_MAP_API_KEY;
+
+                   const response = await axios.get('http://localhost:3000/passengers');
+                   const passengers = response.data;
+                   
+                   const passenger = passengers.find(p => p.user?.email === email);
+
+                   if(!passenger || !passenger.address){
+                    alert("Putnik ili adresa nisu pronađeni");
+                    return;
+                   }
+
+                   const fullAddress = `${passenger.address.street}, ${passenger.address.town}, ${passenger.address.postalCode}, ${passenger.address.country}`;
+
+                   const geo=await axios.get('https://maps.googleapis.com/maps/api/geocode/json',{
+                    params:{
+                        address:fullAddress,
+                        key:apiKey
+                    }
+                   });
+
+                   if(geo.data.status === "OK"){
+                    this.mapLocation = geo.data.results[0].geometry.location;
+                   }else{
+                    console.warn("Geokodiranje nije uspjelo", geo.data.status);
+                   }
+                }catch(err){
+                    console.error("Greška:", err);
+                    alert("Greška na serveru");
+                }
+            },
+
             onLogout(){
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
                 window.location.assign("/");
             }
+        },
+        mounted(){
+            this.getPassengerLocation();
         }
     }
 </script>

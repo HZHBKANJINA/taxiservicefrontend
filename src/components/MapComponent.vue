@@ -16,7 +16,7 @@ export default {
     },
     markerTitle: {
       type: String,
-      default: "Ovčari",
+      default: "Moja Adresa",
     },
   },
   mounted() {
@@ -48,10 +48,13 @@ export default {
       });
 
       new window.google.maps.Marker({
-        position: this.center,
-        map: this.map,
+        position:this.center,
+        map:this.map,
+        icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
         title: this.markerTitle,
       });
+
+
     },
   },
 };

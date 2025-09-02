@@ -45,6 +45,7 @@
                     if(response.data && response.data.token){
                         const role = response.data.role;
                         localStorage.setItem('token', response.data.token);
+                        localStorage.setItem('user', JSON.stringify({ email: response.data.email }));
 
                         this.email = '';
                         this.password = '';

@@ -34,7 +34,7 @@
             :center="{ lat: 43.6685332, lng: 17.9785454 }"
             :zoom="15"
             markerTitle="Ovčari"
-    />
+        />
     </div>
 </template>
 <script>
