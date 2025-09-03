@@ -18,73 +18,117 @@
     <div class="main-content">
         <MapComponent
             v-if="mapLocation"
+            :key="driversLocations.length"
             :center="mapLocation"
             :zoom="15"
             markerTitle="Moja adresa"
+            :drivers="driversLocations"
         />
     </div>
 </template>
+
 <script>
     import MapComponent from '../components/MapComponent.vue'
     import axios from 'axios';
     
-    export default{
-        name:'PassengerDashboard',
-        components:{
+    export default {
+        name: 'PassengerDashboard',
+        components: {
             MapComponent
         },
-        data(){
-            return{
-                mapLocation:null,
+        data() {
+            return {
+                mapLocation: null,
+                driversLocations: []
             }
         },
-        methods:{
-            async getPassengerLocation(){
-                try{
+        methods: {
+            async getPassengerLocation() {
+                try {
                     const email = JSON.parse(localStorage.getItem("user")).email;
                     const apiKey = process.env.VUE_APP_GOOGLE_MAP_API_KEY;
 
-                   const response = await axios.get('http://localhost:3000/passengers');
-                   const passengers = response.data;
-                   
-                   const passenger = passengers.find(p => p.user?.email === email);
+                    const response = await axios.get('http://localhost:3000/passengers');
+                    const passengers = response.data;
 
-                   if(!passenger || !passenger.address){
-                    alert("Putnik ili adresa nisu pronađeni");
-                    return;
-                   }
+                    const passenger = passengers.find(p => p.user?.email === email);
 
-                   const fullAddress = `${passenger.address.street}, ${passenger.address.town}, ${passenger.address.postalCode}, ${passenger.address.country}`;
-
-                   const geo=await axios.get('https://maps.googleapis.com/maps/api/geocode/json',{
-                    params:{
-                        address:fullAddress,
-                        key:apiKey
+                    if (!passenger || !passenger.address) {
+                        alert("Putnik ili adresa nisu pronađeni");
+                        return;
                     }
-                   });
 
-                   if(geo.data.status === "OK"){
-                    this.mapLocation = geo.data.results[0].geometry.location;
-                   }else{
-                    console.warn("Geokodiranje nije uspjelo", geo.data.status);
-                   }
-                }catch(err){
+                    const fullAddress = `${passenger.address.street}, ${passenger.address.town}, ${passenger.address.postalCode}, ${passenger.address.country}`;
+
+                    const geo = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+                        params: {
+                            address: fullAddress,
+                            key: apiKey
+                        }
+                    });
+
+                    if (geo.data.status === "OK") {
+                        this.mapLocation = geo.data.results[0].geometry.location;
+                    } else {
+                        console.warn("Geokodiranje nije uspjelo", geo.data.status);
+                    }
+                } catch (err) {
                     console.error("Greška:", err);
                     alert("Greška na serveru");
                 }
             },
+            async getDriversLocations() {
+                try {
+                    const apiKey = process.env.VUE_APP_GOOGLE_MAP_API_KEY;
+                    const response = await axios.get('http://localhost:3000/drivers');
+                    const drivers = response.data;
+                    console.log("Drivers received in PassengerDashboard.vue:", drivers);
 
-            onLogout(){
+                    const locations = [];
+                    for (const driver of drivers) {
+                        if (driver.address) {
+                            const fullAddress = `${driver.address.street}, ${driver.address.town}, ${driver.address.postalCode}, ${driver.address.country}`;
+                            console.log("Geocoding address for driver:", fullAddress);
+                            const geo = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+                                params: {
+                                    address: fullAddress,
+                                    key: apiKey
+                                }
+                            });
+                            if (geo.data.status === "OK") {
+                                locations.push({
+                                    lat: geo.data.results[0].geometry.location.lat,
+                                    lng: geo.data.results[0].geometry.location.lng,
+                                    firstName: driver.firstName,
+                                    lastName: driver.lastName
+                                });
+                            } else {
+                                console.warn("Geocoding failed for:", fullAddress, geo.data.status);
+                            }
+                        } else {
+                            console.warn("Driver has no address:", driver);
+                        }
+                    }
+                    this.driversLocations = locations;
+                    console.log("Final driver locations:", locations);
+                } catch (err) {
+                    console.error("Greška kod dohvaćanja vozača:", err);
+                }
+            },
+            onLogout() {
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
+                this.driversLocations = []; // Clear driversLocations
                 window.location.assign("/");
             }
         },
-        mounted(){
+        beforeMount() { // Use beforeMount instead of mounted
             this.getPassengerLocation();
+            this.getDriversLocations();
         }
     }
 </script>
+
 <style scoped>
 body{
     background-color: whitesmoke;
