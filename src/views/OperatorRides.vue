@@ -47,7 +47,7 @@
                         <td>{{ formatDateTime(ride.dateTime) }}</td>
                         <td>{{ ride.endAddress.street }} {{ ride.endAddress.town }}</td>
                         <td>
-                            <i class="fa-solid fa-circle-check" style="color: green; cursor: pointer;" @click="confirmReservation"></i>   <i class="fa-solid fa-circle-xmark" style="color: red; cursor: pointer;" @click="cancelReservation"></i>
+                            <i class="fa-solid fa-circle-check" style="color: green; cursor: pointer;" @click="confirmReservation(ride)"></i>   <i class="fa-solid fa-circle-xmark" style="color: red; cursor: pointer;" @click="cancelReservation(ride)"></i>
                         </td>
                     </tr>
                 </tbody>
@@ -80,11 +80,27 @@
             formatDateTime(isoDate){
                 return dayjs(isoDate).format('DD.MM.YYYY  HH:mm');
             },
-            confirmReservation(){
-                alert('Rezervacija potvrđena');
+            async confirmReservation(ride){
+                try{
+                    await axios.put(`http://localhost:3000/drivers/${ride.driver._id}`,{
+                        status:'Zauzet'
+                    });
+                    alert('Rezervacija potvrđena');
+                }catch(error){
+                    console.error('Greška',error);
+                    alert('Greška na serveru');
+                }
             },
-            cancelReservation(){
-                alert('Rezervacija odbijena');
+            async cancelReservation(ride){
+                try{
+                    await axios.put(`http://localhost:3000/drivers/${ride.driver._id}`,{
+                        status:'Slobodan'
+                    });
+                    alert('Rezervacija odbijena');
+                }catch(error){
+                    console.error('Greška',error);
+                    alert('Greška na serveru');
+                }
             }
         },
         mounted(){

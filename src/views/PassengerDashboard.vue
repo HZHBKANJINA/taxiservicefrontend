@@ -23,6 +23,7 @@
             :zoom="15"
             markerTitle="Moja adresa"
             :drivers="driversLocations"
+            :showMapFeatures="true"
         />
     </div>
 </template>
@@ -100,7 +101,9 @@
                                     lat: geo.data.results[0].geometry.location.lat,
                                     lng: geo.data.results[0].geometry.location.lng,
                                     firstName: driver.firstName,
-                                    lastName: driver.lastName
+                                    lastName: driver.lastName,
+                                    phone:driver.phone,
+                                    status: driver.status
                                 });
                             } else {
                                 console.warn("Geocoding failed for:", fullAddress, geo.data.status);
